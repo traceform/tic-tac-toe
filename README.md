@@ -4,7 +4,7 @@ A program that lets you play Tic Tac Toe against the computer.
 
 ## How to run
 ```bash
-python tic-tac-tow.py
+python tic-tac-toe.py
 ```
 
 ## Features
