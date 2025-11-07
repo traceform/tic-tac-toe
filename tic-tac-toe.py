@@ -1,6 +1,7 @@
 from random import randrange
 
-# Global variables
+## Global variables
+# WARNING: Using a string above 1 length or an integer will cause errors
 CPU_SIGN = 'X'
 PLAYER_SIGN = 'O'   
 
@@ -45,7 +46,6 @@ def enter_valid_move():
 
 def enter_move(prompt, board):
     """Prompts the user for an integer, then validates the input and makes the move"""
-    
     while True:
         try:
             move = int(input(prompt))
@@ -89,33 +89,30 @@ def make_list_of_free_fields(board):
 def victory_for(board, sign):
     """Analyzes the board's status in order to check if a player won"""
     players = {
-        'X': "The computer won!",
-        'O': "You won!"
+        CPU_SIGN: "The computer won!",
+        PLAYER_SIGN: "You won!"
         }
 
-    msg = None
+    VALID_MOVES = make_list_of_free_fields(board)
 
     # Check if there are available moves
     if VALID_MOVES:
         # Check diagonal first
-        if board[0][0] == sign:
-            if board[1][1] == sign:
-                if board[2][2] == sign:
-                    return players[sign]
-        elif board[0][2] == sign:
-            if board[1][1] == sign:
-                if board[2][0] == sign:
-                    return players[sign]
+        if sign == board[0][0] == board[1][1] == board[2][2]:
+            return players[sign]
+        elif sign == board[0][2] == board[1][1] == board[2][0]:
+            return players[sign]
         else:
             # Iterate through each row to look for any horizontal and vertical matches
             total_rows = len(board)
             for r in range(total_rows):
                 total_hor, total_vert = 0, 0
-                #print('i',board[r])
+                #print(f"Debug: R {board[r]}")
 
                 # Iterate from column to column
                 total_columns = len(board[r])
                 for c in range(total_columns):
+                    #print(f"Debug: R: {board[r]} | C: {c} > Total R: {total_rows} | Total C: {total_columns}")
                     # Check horizontal
                     # If the current field is equal to the chosen sign, add 1
                     match_horizontal = board[r][c] == sign
@@ -129,15 +126,14 @@ def victory_for(board, sign):
                         total_vert += 1
                         
                     # If the amount of matches is equal to the length of that row/column
+                    #print(f"Debug: Match H: {match_horizontal} - Total: {total_hor} | Match V: {match_vertical} - Total: {total_vert}")
                     if total_hor == total_columns or total_vert == total_rows:
                         return players[sign]
-            return msg
     else:
         return "Tie!"
 
 def draw_move(board):
     """Draws the computer's move and updates the board"""
-
     # Picking a random number
     random_number = randrange(0, len(VALID_MOVES))
     #print(random_number)
@@ -169,7 +165,6 @@ if __name__ == "__main__":
         play += 1
             
         display_board(board)
-        VALID_MOVES = make_list_of_free_fields(board)
         message = victory_for(board, sign)
         if message:
             print(message)
