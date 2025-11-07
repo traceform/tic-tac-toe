@@ -1,5 +1,9 @@
 from random import randrange
 
+# Global variables
+CPU_SIGN = 'X'
+PLAYER_SIGN = 'O'   
+
 def display_board(board):
     """Prints the formatted board status to the console"""
     # Setting a dictionary to aid in the formatting
@@ -48,8 +52,10 @@ def enter_move(prompt, board):
         except ValueError:
             move = enter_valid_move()
 
+        first_valid, last_valid = board[0][0], board[-1][-1]
+
         # If the user input is a valid option
-        if FIRST_VALID <= move <= LAST_VALID:
+        if first_valid <= move <= last_valid:
             # Remove 1 from move to account for index 0
             move -= 1  # Ex.: 6 becomes 5
             # Calculate length of the matrix
@@ -59,8 +65,9 @@ def enter_move(prompt, board):
             # Ex.: 5 % 3 equals 2, so index 2 which is column 3
             column = (move % columns)
 
-            if isinstance(board[row][column], int):
-                # If the field's value is still an integer, replace/mark with 'O'
+            # If the selected field is in the valid moves list
+            if (row, column) in VALID_MOVES:
+                # replace/mark with the PLAYER_SIGN
                 board[row][column] = PLAYER_SIGN
                 return board, PLAYER_SIGN
             else:
@@ -75,7 +82,7 @@ def make_list_of_free_fields(board):
     for r in range(len(board)):
         for c in range(len(board[r])):
             if isinstance(board[r][c], int):
-                valid_moves.append((r,c))
+                valid_moves.append((r, c))
                 
     return valid_moves
 
@@ -87,34 +94,6 @@ def victory_for(board, sign):
         }
 
     msg = None
-    '''
-    # Check horizontal
-    if board[0][0] == board[0][1] == board[0][2]: # 1-3
-    if board[1][0] == board[1][1] == board[1][2]: # 4-6
-    if board[2][0] == board[2][1] == board[2][2]: # 7-9
-    # Check vertical
-    if board[0][0] == board[1][0] == board[2][0]: # 1,4,7
-    if board[0][1] == board[1][1] == board[2][1]: # 2,5,8
-    if board[0][2] == board[1][2] == board[2][2]: # 3,6,9
-    # Check diagonal
-    if board[0][0] == board[1][1] == board[2][2]: # 1,5,9
-    if board[2][0] == board[1][1] == board[0][2]: # 7,5,3
-
-    # Iterate through each row
-    for row in board:
-        print(row)
-        # Iterate from column to column
-        for column in row:
-            print(column)
-            # Compare every field with the sign
-            equal = column == sign
-            # If the current field is different, stop
-            if not equal:
-                break
-        # If equal was never False, return the winning message
-        if equal:
-                return players[sign]
-    '''
 
     # Check if there are available moves
     if VALID_MOVES:
@@ -123,29 +102,34 @@ def victory_for(board, sign):
             if board[1][1] == sign:
                 if board[2][2] == sign:
                     return players[sign]
-        elif board[2][0] == sign:
+        elif board[0][2] == sign:
             if board[1][1] == sign:
-                if board[0][2] == sign:
+                if board[2][0] == sign:
                     return players[sign]
         else:
-            # Iterate through each row
-            for i in range(len(board)):
-                #print('i',board[i])
-                # Iterate from column to column
-                total_horizontal, total_vertical = 0, 0
-                
-                for j in range(len(board[i])):
-                    # If the current field is equal, count 1
-                    match_horizontal = board[i][j] == sign
-                    if match_horizontal:
-                        total_horizontal += 1
+            # Iterate through each row to look for any horizontal and vertical matches
+            total_rows = len(board)
+            for r in range(total_rows):
+                total_hor, total_vert = 0, 0
+                #print('i',board[r])
 
-                    match_vertical = board[j][i] == sign
+                # Iterate from column to column
+                total_columns = len(board[r])
+                for c in range(total_columns):
+                    # Check horizontal
+                    # If the current field is equal to the chosen sign, add 1
+                    match_horizontal = board[r][c] == sign
+                    if match_horizontal:
+                        total_hor += 1
+                    
+                    # Check vertical
+                    # If the current field is equal to the chosen sign, add 1
+                    match_vertical = board[c][r] == sign
                     if match_vertical:
-                        total_vertical += 1
+                        total_vert += 1
                         
-                    # If equal was never False, return the winning message
-                    if total_horizontal == len(board[i]) or total_vertical == len(board):
+                    # If the amount of matches is equal to the length of that row/column
+                    if total_hor == total_columns or total_vert == total_rows:
                         return players[sign]
             return msg
     else:
@@ -154,30 +138,21 @@ def victory_for(board, sign):
 def draw_move(board):
     """Draws the computer's move and updates the board"""
 
-    # Checking valid moves
-    valid_moves = make_list_of_free_fields(board)
-    #print(valid_moves)
-    # Picking up a random number
-    random_number = randrange(0,len(valid_moves))
+    # Picking a random number
+    random_number = randrange(0, len(VALID_MOVES))
     #print(random_number)
     # Choosing the index number
-    chosen = valid_moves[random_number]
+    chosen = VALID_MOVES[random_number]
     # Marking the chosen field
     board[chosen[0]][chosen[1]] = CPU_SIGN
     
     return board, CPU_SIGN
 
 if __name__ == "__main__":
-    # Global variables
-    CPU_SIGN = 'X'
-    PLAYER_SIGN = 'O'
-    
     # Creates the board
     board = [[n for n in range(1, 3+1)], [n for n in range(4, 6+1)], [n for n in range(7, 9+1)]]
 
-    # Collects the first and last valid options for later use
-    FIRST_VALID, LAST_VALID = board[0][0], board[-1][-1]
-
+    VALID_MOVES = make_list_of_free_fields(board)
     play = 1
     while play:
         if play % 2 != 0:
@@ -185,7 +160,11 @@ if __name__ == "__main__":
             board, sign = draw_move(board)
         else:
             # Player's turn
-            board, sign = enter_move("Enter your move: ", board)
+            try:
+                board, sign = enter_move("Enter your move: ", board)
+            except KeyboardInterrupt:
+                print("\nProgram terminated.")
+                exit()
 
         play += 1
             
